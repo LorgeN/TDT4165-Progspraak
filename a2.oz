@@ -1,4 +1,89 @@
-\insert ./List.oz
+/* \insert ./List.oz */
+
+/* List.oz included here for convenience (avoids multiple files in hand in) :) */
+declare Length Take Drop Append Member Position Reverse
+
+fun {Length List} A in 
+    case List of Element1|Rest then
+        A = 1 + {Length Rest}
+    else
+        A = 0
+    end
+    A
+end
+
+fun {Take List Count} R in
+    if Count > {Length List} then
+        R = List
+    elseif Count < 1 then
+        R = nil
+    else
+        case List of Element1|Rest then
+            R = Element1|{Take Rest Count - 1}
+        else
+            R = nil
+        end
+    end
+    R
+end
+
+fun {Drop List Count} R in
+    if Count > {Length List} then
+        R = nil
+    elseif Count < 1 then
+        R = List
+    else
+        case List of Element1|Rest then
+            R = {Drop Rest Count -1}
+        end
+    end
+    R
+end
+
+fun {Append List1 List2} R in
+    case List1 of nil then
+        R = List2
+    [] L|Lr then
+        R = L|{Append Lr List2}
+    end 
+    R
+end
+
+fun {Member List Element} R in
+    case List of nil then
+        R = false
+    [] Element1|Rest then
+        if Element1 == Element then
+            R = true
+        else
+            R = {Member Rest Element}
+        end
+    end
+    R
+end
+
+fun {Position List Element} R in
+    case List of Element1|Rest then
+        if Element1 == Element then
+            R = 1
+        else
+            R = 1 + {Position Rest Element}
+        end
+    end
+    R
+end
+
+fun {Reverse List} 
+    fun {DoReverse List1 List2}
+        case List1 of nil then List2
+        [] X|Xr then {DoReverse Xr X|List2}
+        end
+    end
+in
+    {DoReverse List nil}
+end
+
+/* List.oz end */
 
 local Lex Tokenize Interpret Infix in
     fun {Lex Input}
@@ -90,7 +175,7 @@ local Lex Tokenize Interpret Infix in
                 /* Using browse instead of System.showInfo to 
                 keep everything in one place */
                 /* Reverse the stack to satisfy expected output from task */
-                {Browse {List.reverse Stack}}
+                {Browse {Reverse Stack}}
                 Stack
             [] duplicate then
                 case Stack of Head|Tail then
@@ -117,7 +202,7 @@ local Lex Tokenize Interpret Infix in
         end
     in
         /* Reverse the results to satisfy expected output from task */
-        {List.reverse {Eval Tokens nil}}
+        {Reverse {Eval Tokens nil}}
     end
 
     {Browse 'Task 2c'}
@@ -236,6 +321,30 @@ R = {
 
 b)
 
+<number> ::= {0|1|2|3|4|5|6|7|8|9}+[.{0|1|2|3|4|5|6|7|8|9}]
+<operator-high> ::= *|/
+<operator-low> ::= +|-
+<expression ::= <expression> <operator-low> <term> | <term>
+<term> ::= (<expression>) | <number> | <term> <operator-high> <term>
 
+This grammar is not ambigious. In expression, if we had let the 3rd "part" be
+any number strings such as "1 + 2 + 3" would've had multiple parse trees,
+but by limiting that to "term" there is only one. 
 
+c)
+
+A context-sensitive has limitations for situations in which certain rules
+can be applied (Only applicable in certain contexts). This is not the case
+for context-free grammars.
+
+d)
+
+This will happen because Oz does not permit operations on different types,
+and considers integers and floats to be different. This can be useful to
+detect issues such as numbers that have been represented using the wrong
+type (e. g. a number that is always an integer represented as a float), or
+to see if you are using the wrong variable somewhere. They also have very
+different representations at a binary level, so if you are going to be
+performing operations on them it will be useful that they are in the same
+format.
 */

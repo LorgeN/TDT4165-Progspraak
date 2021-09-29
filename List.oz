@@ -1,4 +1,4 @@
-declare Length Take Drop Append Member Position
+declare Length Take Drop Append Member Position Reverse
 
 fun {Length List} A in 
     case List of Element1|Rest then
@@ -69,3 +69,13 @@ fun {Position List Element} R in
     end
     R
 end
+
+fun {Reverse List} 
+    fun {DoReverse List1 List2}
+       case List1 of nil then List2
+       [] X|Xr then {DoReverse Xr X|List2}
+       end
+    end
+ in
+    {DoReverse List nil}
+ end
