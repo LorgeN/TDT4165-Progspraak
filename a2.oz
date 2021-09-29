@@ -95,11 +95,13 @@ local Lex Tokenize Interpret Infix in
 
     fun {Tokenize Lexemes}
         fun {TokenizeSingle Lexeme}
+            /* First we check if the lexeme is a number type */
             if {String.isInt Lexeme} then
                 number({String.toInt Lexeme $})
             elseif {String.isFloat Lexeme} then
                 number({String.toFloat Lexeme $})    
             else 
+                /* Then we move on to operators/commands */
                 case Lexeme of "+" then
                     operator(type:plus)
                 [] "-" then
@@ -190,11 +192,15 @@ local Lex Tokenize Interpret Infix in
         
         /* Recursive helper function for interpreting the tokens */
         fun {Eval Tokens Stack}
+            /* Consider what form our tokens are current on */
             case Tokens of number(N)|Tail then
+                /* Numbers are just pushed back onto the stack as number records */
                 {Eval Tail number(N)|Stack}
             [] operator(type:T)|Tail then
+                /* Evaluate operator using helper function */
                 {Eval Tail {Operate T Stack}}
             [] command(T)|Tail then
+                /* Evaluate command using helper function */
                 {Eval Tail {Command T Stack}}
             else
                 Stack
@@ -225,6 +231,7 @@ local Lex Tokenize Interpret Infix in
             /* Consider unary operators first */
             case T of flip then
                 case Expressions of Head|Tail then
+                    /* We apply the operator here to avoid stuff like -(-3) */
                     ~Head|Tail
                 else
                     raise invalidCommand(T) end
@@ -251,20 +258,27 @@ local Lex Tokenize Interpret Infix in
                     end
                     V|Tail
                 else
+                    /* If we don't have enough operators we can't really do anything. 
+                        This case is somewhat undefined/unhandled, because we will 
+                        drop the operator entirely */
                     Expressions
                 end
             end
         end
 
         fun {InfixInternal Tokens Expressions}
+            /* Consider the form our tokens are on */
             case Tokens of number(N)|Tail then
+                /* It's a number, so we push just the number (Not the record) on the expression stack */
                 {InfixInternal Tail N|Expressions}
             [] operator(type:T)|Tail then
+                /* It's an operator so we pass it to our operator function to handle */
                 {InfixInternal Tail {InfixSingle T Expressions}}
             [] command(T)|Tail then
                 /* Ignore commands, not relevant here */
                 {InfixInternal Tail Expressions}
             else
+                /* We are done since the Tokens are not in any recognizable format anymore */
                 Expressions
             end
         end
